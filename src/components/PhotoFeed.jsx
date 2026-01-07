@@ -3,6 +3,8 @@ import { getPhotos } from '../utils/storage';
 
 const PhotoFeed = ({ refreshTrigger }) => {
   const [photos, setPhotos] = useState([]);
+  const [selectedUser, setSelectedUser] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     // Load photos from storage
@@ -29,13 +31,72 @@ const PhotoFeed = ({ refreshTrigger }) => {
     });
   };
 
+  const uniqueUsers = Array.from(
+    new Set(
+      photos
+        .map((p) => p.userName || 'Anonymous')
+        .filter(Boolean)
+    )
+  );
+
+  const filteredPhotos = photos.filter((photo) => {
+    const userName = (photo.userName || 'Anonymous').toLowerCase();
+    const fileName = (photo.fileName || '').toLowerCase();
+    const term = searchTerm.trim().toLowerCase();
+
+    if (selectedUser !== 'all' && userName !== selectedUser.toLowerCase()) {
+      return false;
+    }
+
+    if (term) {
+      return userName.includes(term) || fileName.includes(term);
+    }
+
+    return true;
+  });
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Style Feed</h2>
+
+      {photos.length > 0 && (
+        <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div className="flex-1">
+            <label className="block text-xs font-semibold text-gray-600 mb-1">
+              Filter by user
+            </label>
+            <select
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              className="w-full md:w-48 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            >
+              <option value="all">All users</option>
+              {uniqueUsers.map((user) => (
+                <option key={user} value={user}>
+                  {user}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex-1">
+            <label className="block text-xs font-semibold text-gray-600 mb-1">
+              Search (name or file)
+            </label>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Type to search..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            />
+          </div>
+        </div>
+      )}
       
-      {photos.length > 0 ? (
+      {filteredPhotos.length > 0 ? (
         <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2">
-          {photos.map((photo) => {
+          {filteredPhotos.map((photo) => {
             const status = photo.swipe?.status;
             const badgeStyles =
               status === 'loved'
@@ -88,9 +149,16 @@ const PhotoFeed = ({ refreshTrigger }) => {
             );
           })}
         </div>
+      ) : photos.length > 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg mb-2">No photos match your filters</p>
+          <p className="text-gray-400 text-sm">
+            Try clearing the search or selecting &quot;All users&quot;.
+          </p>
+        </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg mb-2">No photos in the feed yet</p>
+          <p className="text-gray-500 text-lg mb2">No photos in the feed yet</p>
           <p className="text-gray-400 text-sm">Upload your first style photo to get started!</p>
         </div>
       )}

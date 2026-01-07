@@ -3,6 +3,7 @@ import ProfileForm from './components/ProfileForm';
 import PhotoUpload from './components/PhotoUpload';
 import PhotoFeed from './components/PhotoFeed';
 import SwipeDeck from './components/SwipeDeck';
+import SwipeHistory from './components/SwipeHistory';
 import { getProfile, getPhotos } from './utils/storage';
 
 function App() {
@@ -51,6 +52,10 @@ function App() {
 
         <div className="mt-8">
           <SwipeDeck refreshTrigger={refreshKey} onSwipe={handleSwipeUpdate} />
+        </div>
+
+        <div className="mt-8">
+          <SwipeHistory refreshTrigger={refreshKey} />
         </div>
       </div>
     </div>

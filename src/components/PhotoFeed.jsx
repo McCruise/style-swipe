@@ -35,33 +35,58 @@ const PhotoFeed = ({ refreshTrigger }) => {
       
       {photos.length > 0 ? (
         <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2">
-          {photos.map((photo) => (
-            <div 
-              key={photo.id} 
-              className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow duration-200"
-            >
-              <div className="flex items-center mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">
-                  {photo.userName ? photo.userName.charAt(0).toUpperCase() : 'A'}
+          {photos.map((photo) => {
+            const status = photo.swipe?.status;
+            const badgeStyles =
+              status === 'loved'
+                ? 'bg-green-100 text-green-700'
+                : status === 'not_for_me'
+                  ? 'bg-amber-100 text-amber-700'
+                  : status === 'skipped'
+                    ? 'bg-gray-100 text-gray-700'
+                    : 'hidden';
+            const badgeText =
+              status === 'loved'
+                ? 'Loved'
+                : status === 'not_for_me'
+                  ? 'Not for me'
+                  : status === 'skipped'
+                    ? 'Skipped'
+                    : '';
+
+            return (
+              <div 
+                key={photo.id} 
+                className="relative border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow duration-200"
+              >
+                {status && (
+                  <span className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${badgeStyles}`}>
+                    {badgeText}
+                  </span>
+                )}
+                <div className="flex items-center mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">
+                    {photo.userName ? photo.userName.charAt(0).toUpperCase() : 'A'}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800">
+                      {photo.userName || 'Anonymous'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {formatDate(photo.uploadedAt)}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-gray-800">
-                    {photo.userName || 'Anonymous'}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {formatDate(photo.uploadedAt)}
-                  </p>
+                <div className="rounded-lg overflow-hidden">
+                  <img
+                    src={photo.data}
+                    alt={photo.fileName}
+                    className="w-full h-auto object-cover rounded-lg"
+                  />
                 </div>
               </div>
-              <div className="rounded-lg overflow-hidden">
-                <img
-                  src={photo.data}
-                  alt={photo.fileName}
-                  className="w-full h-auto object-cover rounded-lg"
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-12">

@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import ProfileForm from './components/ProfileForm';
 import PhotoUpload from './components/PhotoUpload';
 import PhotoFeed from './components/PhotoFeed';
+import SwipeDeck from './components/SwipeDeck';
 import { getProfile, getPhotos } from './utils/storage';
 
 function App() {
   const [profileName, setProfileName] = useState('');
-  const [photos, setPhotos] = useState([]);
-  const [feedRefresh, setFeedRefresh] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     // Load data from local storage on mount
@@ -15,8 +15,7 @@ function App() {
     if (profile) {
       setProfileName(profile.name);
     }
-    const savedPhotos = getPhotos();
-    setPhotos(savedPhotos);
+    getPhotos(); // Warm up cache; return value not directly used here
   }, []);
 
   const handleProfileUpdate = (name) => {
@@ -24,9 +23,12 @@ function App() {
   };
 
   const handlePhotosUpdate = (updatedPhotos) => {
-    setPhotos(updatedPhotos);
     // Trigger feed refresh
-    setFeedRefresh(prev => prev + 1);
+    setRefreshKey(prev => prev + 1);
+  };
+
+  const handleSwipeUpdate = () => {
+    setRefreshKey(prev => prev + 1);
   };
 
   return (
@@ -44,7 +46,11 @@ function App() {
         <PhotoUpload onPhotosUpdate={handlePhotosUpdate} userName={profileName} />
         
         <div className="mt-8">
-          <PhotoFeed refreshTrigger={feedRefresh} />
+          <PhotoFeed refreshTrigger={refreshKey} />
+        </div>
+
+        <div className="mt-8">
+          <SwipeDeck refreshTrigger={refreshKey} onSwipe={handleSwipeUpdate} />
         </div>
       </div>
     </div>

@@ -48,7 +48,8 @@ export const savePhoto = (photoData, fileName, userName) => {
       data: photoData,
       fileName: fileName,
       userName: userName || 'Anonymous',
-      uploadedAt: new Date().toISOString()
+      uploadedAt: new Date().toISOString(),
+      swipe: { status: null, swipedAt: null }
     };
     photos.push(newPhoto);
     localStorage.setItem(PHOTOS_KEY, JSON.stringify(photos));
@@ -67,7 +68,13 @@ export const getPhotos = () => {
   try {
     const photosData = localStorage.getItem(PHOTOS_KEY);
     if (!photosData) return [];
-    return JSON.parse(photosData);
+    const parsed = JSON.parse(photosData);
+    // Ensure older photos without swipe data get a default swipe state
+    return parsed.map(photo => ({
+      swipe: { status: null, swipedAt: null },
+      ...photo,
+      swipe: photo.swipe || { status: null, swipedAt: null }
+    }));
   } catch (error) {
     console.error('Error getting photos:', error);
     return [];
@@ -86,6 +93,34 @@ export const deletePhoto = (photoId) => {
     return true;
   } catch (error) {
     console.error('Error deleting photo:', error);
+    return false;
+  }
+};
+
+/**
+ * Save a swipe decision for a photo
+ * @param {string} photoId - ID of the photo
+ * @param {'loved'|'not_for_me'|'skipped'} status - Swipe status
+ */
+export const saveSwipe = (photoId, status) => {
+  try {
+    const photos = getPhotos();
+    const updatedPhotos = photos.map(photo => {
+      if (photo.id === photoId) {
+        return {
+          ...photo,
+          swipe: {
+            status,
+            swipedAt: new Date().toISOString()
+          }
+        };
+      }
+      return photo;
+    });
+    localStorage.setItem(PHOTOS_KEY, JSON.stringify(updatedPhotos));
+    return true;
+  } catch (error) {
+    console.error('Error saving swipe:', error);
     return false;
   }
 };
